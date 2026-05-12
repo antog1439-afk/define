@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Новостной поиск</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .search-container {
+            position: sticky;
+            top: 0;
+            background: var(--tg-theme-bg-color, #ffffff);
+            padding-bottom: 12px;
+            z-index: 10;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 14px 16px;
+            border: 1px solid var(--tg-theme-hint-color, #cccccc);
+            border-radius: 24px;
+            font-size: 16px;
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            color: var(--tg-theme-text-color, #000000);
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--tg-theme-button-color, #3390ec);
+        }
+
+        .search-btn {
+            padding: 14px 24px;
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .search-btn:active {
+            opacity: 0.7;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .filter-chip {
+            padding: 8px 16px;
+            background: var(--tg-theme-secondary-bg-color, #e0e0e0);
+            border-radius: 20px;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--tg-theme-text-color, #000000);
+        }
+
+        .filter-chip.active {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: white;
+        }
+
+        .results-container {
+            margin-top: 16px;
+        }
+
+        .news-card {
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .news-card:active {
+            transform: scale(0.98);
+        }
+
+        .news-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            color: var(--tg-theme-text-color, #000000);
+        }
+
+        .news-description {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #666666);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .news-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #888888);
+        }
+
+        .news-source {
+            font-weight: 600;
+        }
+
+        .news-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--tg-theme-hint-color, #888888);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--tg-theme-hint-color, #888888);
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Поиск новостей... Например: технологии, спорт, космос" autocomplete="off">
+            <button class="search-btn" onclick="searchNews()">Найти</button>
+        </div>
+        <div class="filter-bar" id="filterBar">
+            <div class="filter-chip active" data-category="general">🔥 Все</div>
+            <div class="filter-chip" data-category="technology">💻 Технологии</div>
+            <div class="filter-chip" data-category="sports">⚽ Спорт</div>
+            <div class="filter-chip" data-category="science">🔬 Наука</div>
+            <div class="filter-chip" data-category="health">💊 Здоровье</div>
+            <div class="filter-chip" data-category="entertainment">🎬 Развлечения</div>
+            <div class="filter-chip" data-category="business">💼 Бизнес</div>
+        </div>
+    </div>
+
+    <div class="results-container" id="resultsContainer">
+        <div class="empty-state">
+            🌐 Введи запрос или выбери категорию<br>
+            <small>Бесплатно до 100 запросов в день</small>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.MainButton.hide();
+        
+        // ТВОЙ API-ключ от GNews (уже вставлен)
+        const API_KEY = "aad96a5b139cac3fe72bdd37a184a7b7";
+        
+        let currentCategory = 'general';
+        
+        // Обработка кликов по фильтрам
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                currentCategory = chip.dataset.category;
+                // Очищаем поисковую строку и ищем по категории
+                document.getElementById('searchInput').value = '';
+                loadTopNews();
+            });
+        });
+        
+        // Поиск по Enter
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchNews();
+        });
+        
+        // Поиск по ключевым словам
+        async function searchNews() {
+            const query = document.getElementById('searchInput').value.trim();
+            
+            if (!query) {
+                loadTopNews();
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=ru&country=ru&max=20&apikey=${API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.errors) {
+                    showError('Ошибка: ' + data.errors[0]);
+                    return;
+                }
+                
+                if (!data.articles || data.articles.length === 0) {
+                    showEmptyState('😕 Ничего не найдено по запросу «' + query + '»');
+                    return;
+                }
+                
+                renderNews(data.articles);
+                tg.showPopup({
+                    title: '🔍 Результаты',
+                    message: `Найдено ${data.articles.length} новостей`,
+                    buttons: [{type: 'ok'}]
+                });
+                
+            } catch (error) {
+                console.error(error);
+                showError('⚠️ Ошибка загрузки. Проверь подключение к интернету');
+            }
+        }
+        
+        // Загрузка топ новостей по категории
+        async function loadTopNews() {
+            showLoading();
+            
+            try {
+                const url = `https://gnews.io/api/v4/top-headlines?category=${currentCategory}&lang=ru&country=ru&max=20&apikey=${API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.errors) {
+                    showError('Ошибка: ' + data.errors[0]);
+                    return;
+                }
+                
+                if (!data.articles || data.articles.length === 0) {
+                    showEmptyState('😕 Нет новостей в этой категории');
+                    return;
+                }
+                
+                renderNews(data.articles);
+                
+            } catch (error) {
+                console.error(error);
+                showError('⚠️ Ошибка загрузки. Проверь подключение к интернету');
+            }
+        }
+        
+        // Отображение новостей
+        function renderNews(articles) {
+            const container = document.getElementById('resultsContainer');
+            
+            let html = '';
+            for (let i = 0; i < articles.length; i++) {
+                const article = articles[i];
+                const imageHtml = article.image ? `<img class="news-image" src="${article.image}" onerror="this.style.display='none'">` : '';
+                
+                html += `
+                    <div class="news-card" onclick="openLink('${article.url}')">
+                        ${imageHtml}
+                        <div class="news-title">${escapeHtml(article.title)}</div>
+                        <div class="news-description">${escapeHtml(article.description || 'Нет описания')}</div>
+                        <div class="news-meta">
+                            <span class="news-source">📰 ${escapeHtml(article.source.name)}</span>
+                            <span>${formatDate(article.publishedAt)}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        function showLoading() {
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="loading">
+                    ⏳ Загрузка новостей...<br>
+                    <small>Подожди немного</small>
+                </div>
+            `;
+        }
+        
+        function showEmptyState(message) {
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="empty-state">
+                    ${message}
+                </div>
+            `;
+        }
+        
+        function showError(message) {
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="error">
+                    ${message}
+                </div>
+            `;
+        }
+        
+        function openLink(url) {
+            tg.openLink(url);
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'только что';
+            if (diffMins < 60) return `${diffMins} мин назад`;
+            if (diffHours < 24) return `${diffHours} ч назад`;
+            if (diffDays === 1) return 'вчера';
+            if (diffDays < 7) return `${diffDays} дня назад`;
+            
+            return date.toLocaleDateString('ru-RU');
+        }
+        
+        // Сообщаем Telegram, что приложение готово
+        tg.ready();
+        
+        // При запуске загружаем топ новости
+        loadTopNews();
+    </script>
+</body>
+</html>
