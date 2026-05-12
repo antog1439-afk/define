@@ -156,10 +156,23 @@
             padding: 40px;
             color: #e53e3e;
         }
+        
+        .info-banner {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 <body>
     <div class="search-container">
+        <div class="info-banner" id="infoBanner">
+            🔄 Используется прокси для обхода CORS
+        </div>
         <div class="search-box">
             <input type="text" class="search-input" id="searchInput" placeholder="🔍 Поиск новостей... Например: технологии, спорт, космос" autocomplete="off">
             <button class="search-btn" onclick="searchNews()">Найти</button>
@@ -188,8 +201,11 @@
         tg.expand();
         tg.MainButton.hide();
         
-        // ТВОЙ API-ключ от GNews (уже вставлен)
+        // ТВОЙ API-ключ от GNews
         const API_KEY = "aad96a5b139cac3fe72bdd37a184a7b7";
+        
+        // CORS-прокси (бесплатный, но может быть медленным)
+        const CORS_PROXY = "https://cors-anywhere.herokuapp.com/";
         
         let currentCategory = 'general';
         
@@ -199,7 +215,6 @@
                 document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
                 currentCategory = chip.dataset.category;
-                // Очищаем поисковую строку и ищем по категории
                 document.getElementById('searchInput').value = '';
                 loadTopNews();
             });
@@ -222,12 +237,24 @@
             showLoading();
             
             try {
-                const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=ru&country=ru&max=20&apikey=${API_KEY}`;
-                const response = await fetch(url);
+                // Используем прокси для обхода CORS
+                const url = CORS_PROXY + `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=ru&country=ru&max=20&apikey=${API_KEY}`;
+                console.log("Запрос:", url);
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
                 const data = await response.json();
                 
                 if (data.errors) {
-                    showError('Ошибка: ' + data.errors[0]);
+                    showError('Ошибка API: ' + data.errors[0]);
                     return;
                 }
                 
@@ -244,8 +271,8 @@
                 });
                 
             } catch (error) {
-                console.error(error);
-                showError('⚠️ Ошибка загрузки. Проверь подключение к интернету');
+                console.error('Ошибка:', error);
+                showError('⚠️ Ошибка загрузки. Возможно, прокси временно недоступен. Попробуй позже или перезагрузи страницу.');
             }
         }
         
@@ -254,8 +281,19 @@
             showLoading();
             
             try {
-                const url = `https://gnews.io/api/v4/top-headlines?category=${currentCategory}&lang=ru&country=ru&max=20&apikey=${API_KEY}`;
-                const response = await fetch(url);
+                const url = CORS_PROXY + `https://gnews.io/api/v4/top-headlines?category=${currentCategory}&lang=ru&country=ru&max=20&apikey=${API_KEY}`;
+                console.log("Запрос:", url);
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
                 const data = await response.json();
                 
                 if (data.errors) {
@@ -271,8 +309,8 @@
                 renderNews(data.articles);
                 
             } catch (error) {
-                console.error(error);
-                showError('⚠️ Ошибка загрузки. Проверь подключение к интернету');
+                console.error('Ошибка:', error);
+                showError('⚠️ Ошибка загрузки. Возможно, прокси временно недоступен.');
             }
         }
         
