@@ -40,6 +40,16 @@
             color: var(--tg-theme-hint-color, #666666);
         }
 
+        .info-banner {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: white;
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
         .search-box {
             display: flex;
             gap: 8px;
@@ -121,6 +131,12 @@
             color: var(--tg-theme-hint-color, #888888);
         }
 
+        .divider {
+            height: 1px;
+            background: var(--tg-theme-hint-color, #e0e0e0);
+            margin: 20px 0;
+        }
+
         .quick-actions {
             margin-top: 24px;
         }
@@ -151,22 +167,6 @@
         .quick-btn:active {
             background: var(--tg-theme-hint-color, #d0d0d0);
         }
-
-        .info-banner {
-            background: var(--tg-theme-button-color, #3390ec);
-            color: white;
-            padding: 12px;
-            border-radius: 16px;
-            font-size: 13px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .divider {
-            height: 1px;
-            background: var(--tg-theme-hint-color, #e0e0e0);
-            margin: 20px 0;
-        }
     </style>
 </head>
 <body>
@@ -190,7 +190,7 @@
                 <div class="platform-emoji">📰</div>
                 <div class="platform-info">
                     <div class="platform-name">Новости</div>
-                    <div class="platform-desc">Свежие новости со всего мира (GNews)</div>
+                    <div class="platform-desc">Свежие новости со всего мира</div>
                 </div>
             </div>
 
@@ -328,17 +328,15 @@
                     buttons: [
                         {id: "news", type: "default", text: "📰 Новости"},
                         {id: "youtube", type: "default", text: "📺 YouTube"},
-                        {id: "wb", type: "default", text: "🛒 Wildberries"},
-                        {id: "kp", type: "default", text: "🎬 Кинопоиск"},
+                        {id: "wildberries", type: "default", text: "🛒 Wildberries"},
+                        {id: "kinopoisk", type: "default", text: "🎬 Кинопоиск"},
+                        {id: "google", type: "default", text: "🌍 Google"},
                         {id: "all", type: "default", text: "⚡ Все сразу"},
                         {type: "cancel"}
                     ]
                 }, (buttonId) => {
                     if (buttonId && buttonId !== "cancel") {
-                        let platform = buttonId;
-                        if (buttonId === "wb") platform = "wildberries";
-                        if (buttonId === "kp") platform = "kinopoisk";
-                        sendSearch(query, platform);
+                        sendSearch(query, buttonId);
                     }
                 });
             } else {
