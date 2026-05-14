@@ -77,6 +77,15 @@
             padding: 60px 20px;
             color: var(--tg-theme-hint-color, #888888);
         }
+        .success-banner {
+            background: #48bb78;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
         .info-banner {
             background: var(--tg-theme-button-color, #3390ec);
             color: white;
@@ -91,7 +100,7 @@
 <body>
     <div class="search-container">
         <div class="info-banner">
-            🔍 Найди новости — результат придёт в чат
+            🔍 Найди новости — результат придёт в этот чат
         </div>
         <div class="search-box">
             <input type="text" class="search-input" id="searchInput" placeholder="Поиск новостей... Например: технологии, космос" autocomplete="off">
@@ -122,6 +131,7 @@
         
         let currentCategory = 'general';
         
+        // Обработка кликов по фильтрам
         document.querySelectorAll('.filter-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
@@ -132,6 +142,7 @@
             });
         });
         
+        // Поиск по Enter
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') searchNews();
         });
@@ -139,40 +150,65 @@
         function searchNews() {
             const query = document.getElementById('searchInput').value.trim();
             
-            showLoading();
+            if (!query) {
+                tg.showPopup({
+                    title: "❓ Пустой запрос",
+                    message: "Введи поисковое слово или фразу",
+                    buttons: [{type: "ok"}]
+                });
+                return;
+            }
             
+            showSuccess(`🔍 Ищу "${query}"... Новости придут в чат`);
+            
+            // Отправляем данные боту
             tg.sendData(JSON.stringify({
                 query: query,
                 category: currentCategory
             }));
-            
-            setTimeout(() => {
-                tg.close();
-            }, 500);
         }
         
         function loadTopNews() {
-            showLoading();
+            const categoryNames = {
+                general: "все новости",
+                technology: "технологии",
+                sports: "спорт",
+                science: "науку",
+                health: "здоровье",
+                entertainment: "развлечения",
+                business: "бизнес"
+            };
+            
+            showSuccess(`📰 Загружаю ${categoryNames[currentCategory]}... Новости придут в чат`);
             
             tg.sendData(JSON.stringify({
                 query: "",
                 category: currentCategory
             }));
-            
-            setTimeout(() => {
-                tg.close();
-            }, 500);
         }
         
         function showLoading() {
             document.getElementById('resultsContainer').innerHTML = `
                 <div class="loading">
-                    ⏳ Ищем новости...<br>
-                    <small>Отправляю запрос боту</small>
+                    ⏳ Отправляю запрос...<br>
+                    <small>Новости скоро появятся в чате</small>
                 </div>
             `;
         }
         
+        function showSuccess(message) {
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="success-banner">
+                    ✅ ${message}
+                </div>
+                <div class="empty-state">
+                    💡 Можешь продолжить поиск<br>
+                    <small>Новости придут в этот чат</small>
+                </div>
+            `;
+        }
+        
+        // Сообщаем Telegram, что приложение готово
         tg.ready();
     </script>
 </body>
