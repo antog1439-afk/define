@@ -297,6 +297,11 @@
             return names[platform] || platform;
         }
         
+        // Открыть ссылку через Telegram (правильный способ!)
+        function openLink(url) {
+            tg.openLink(url);
+        }
+        
         // Обработка клика по платформе
         document.querySelectorAll('.platform-card').forEach(card => {
             card.addEventListener('click', () => {
@@ -321,24 +326,7 @@
         searchBtn.addEventListener('click', () => {
             const query = searchInput.value.trim();
             if (query) {
-                // Если есть запрос, показываем платформы для выбора
-                tg.showPopup({
-                    title: "🔍 Выбери платформу",
-                    message: `Что ищем по запросу «${query}»?`,
-                    buttons: [
-                        {id: "news", type: "default", text: "📰 Новости"},
-                        {id: "youtube", type: "default", text: "📺 YouTube"},
-                        {id: "wildberries", type: "default", text: "🛒 Wildberries"},
-                        {id: "kinopoisk", type: "default", text: "🎬 Кинопоиск"},
-                        {id: "google", type: "default", text: "🌍 Google"},
-                        {id: "all", type: "default", text: "⚡ Все сразу"},
-                        {type: "cancel"}
-                    ]
-                }, (buttonId) => {
-                    if (buttonId && buttonId !== "cancel") {
-                        sendSearch(query, buttonId);
-                    }
-                });
+                sendSearch(query, "all");
             } else {
                 tg.showPopup({
                     title: "❓ Пустой запрос",
