@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Новостной поиск</title>
+    <title>Универсальный поисковик</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: var(--tg-theme-bg-color, #ffffff);
@@ -14,18 +19,33 @@
             padding: 16px;
             min-height: 100vh;
         }
-        .search-container {
-            position: sticky;
-            top: 0;
-            background: var(--tg-theme-bg-color, #ffffff);
-            padding-bottom: 12px;
-            z-index: 10;
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
         }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #666666);
+        }
+
         .search-box {
             display: flex;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 20px;
         }
+
         .search-input {
             flex: 1;
             padding: 14px 16px;
@@ -36,9 +56,11 @@
             color: var(--tg-theme-text-color, #000000);
             outline: none;
         }
+
         .search-input:focus {
             border-color: var(--tg-theme-button-color, #3390ec);
         }
+
         .search-btn {
             padding: 14px 24px;
             background: var(--tg-theme-button-color, #3390ec);
@@ -48,168 +70,308 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
+            transition: opacity 0.2s;
         }
-        .filter-bar {
+
+        .search-btn:active {
+            opacity: 0.7;
+        }
+
+        .platforms {
             display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 8px;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
         }
-        .filter-chip {
-            padding: 8px 16px;
-            background: var(--tg-theme-secondary-bg-color, #e0e0e0);
-            border-radius: 20px;
-            font-size: 14px;
-            white-space: nowrap;
+
+        .platform-card {
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 16px;
+            padding: 16px;
             cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .filter-chip.active {
-            background: var(--tg-theme-button-color, #3390ec);
-            color: white;
+
+        .platform-card:active {
+            transform: scale(0.98);
+            background: var(--tg-theme-hint-color, #e0e0e0);
         }
-        .loading {
+
+        .platform-emoji {
+            font-size: 32px;
+            width: 48px;
             text-align: center;
-            padding: 60px 20px;
+        }
+
+        .platform-info {
+            flex: 1;
+        }
+
+        .platform-name {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .platform-desc {
+            font-size: 12px;
             color: var(--tg-theme-hint-color, #888888);
         }
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--tg-theme-hint-color, #888888);
+
+        .quick-actions {
+            margin-top: 24px;
         }
-        .success-banner {
-            background: #48bb78;
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
+
+        .quick-title {
             font-size: 14px;
-            text-align: center;
+            color: var(--tg-theme-hint-color, #888888);
             margin-bottom: 12px;
+            text-align: center;
         }
+
+        .quick-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .quick-btn {
+            padding: 8px 16px;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .quick-btn:active {
+            background: var(--tg-theme-hint-color, #d0d0d0);
+        }
+
         .info-banner {
             background: var(--tg-theme-button-color, #3390ec);
             color: white;
-            padding: 8px 12px;
-            border-radius: 12px;
-            font-size: 12px;
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 13px;
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--tg-theme-hint-color, #e0e0e0);
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <div class="search-container">
-        <div class="info-banner">
-            🔍 Найди новости — результат придёт в этот чат
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Универсальный поисковик</h1>
+            <p>Найди что угодно на любой платформе</p>
         </div>
-        <div class="search-box">
-            <input type="text" class="search-input" id="searchInput" placeholder="Поиск новостей... Например: технологии, космос" autocomplete="off">
-            <button class="search-btn" onclick="searchNews()">Найти</button>
-        </div>
-        <div class="filter-bar" id="filterBar">
-            <div class="filter-chip active" data-category="general">🔥 Все</div>
-            <div class="filter-chip" data-category="technology">💻 Технологии</div>
-            <div class="filter-chip" data-category="sports">⚽ Спорт</div>
-            <div class="filter-chip" data-category="science">🔬 Наука</div>
-            <div class="filter-chip" data-category="health">💊 Здоровье</div>
-            <div class="filter-chip" data-category="entertainment">🎬 Развлечения</div>
-            <div class="filter-chip" data-category="business">💼 Бизнес</div>
-        </div>
-    </div>
 
-    <div class="results-container" id="resultsContainer">
-        <div class="empty-state">
-            🌐 Введи запрос или выбери категорию<br>
-            <small>Новости придут в этот чат</small>
+        <div class="info-banner">
+            🔍 Введи запрос → выбери платформу → результат придёт в чат
+        </div>
+
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="Например: аватар 2, айфон 15, новости..." autocomplete="off">
+            <button class="search-btn" id="searchBtn">🔍 Искать</button>
+        </div>
+
+        <div class="platforms">
+            <div class="platform-card" data-platform="news">
+                <div class="platform-emoji">📰</div>
+                <div class="platform-info">
+                    <div class="platform-name">Новости</div>
+                    <div class="platform-desc">Свежие новости со всего мира (GNews)</div>
+                </div>
+            </div>
+
+            <div class="platform-card" data-platform="youtube">
+                <div class="platform-emoji">📺</div>
+                <div class="platform-info">
+                    <div class="platform-name">YouTube</div>
+                    <div class="platform-desc">Видео по твоему запросу</div>
+                </div>
+            </div>
+
+            <div class="platform-card" data-platform="wildberries">
+                <div class="platform-emoji">🛒</div>
+                <div class="platform-info">
+                    <div class="platform-name">Wildberries</div>
+                    <div class="platform-desc">Товары, одежда, электроника</div>
+                </div>
+            </div>
+
+            <div class="platform-card" data-platform="kinopoisk">
+                <div class="platform-emoji">🎬</div>
+                <div class="platform-info">
+                    <div class="platform-name">Кинопоиск</div>
+                    <div class="platform-desc">Фильмы, сериалы, актёры</div>
+                </div>
+            </div>
+
+            <div class="platform-card" data-platform="google">
+                <div class="platform-emoji">🌍</div>
+                <div class="platform-info">
+                    <div class="platform-name">Google</div>
+                    <div class="platform-desc">Поиск по всему интернету</div>
+                </div>
+            </div>
+
+            <div class="platform-card" data-platform="all">
+                <div class="platform-emoji">⚡</div>
+                <div class="platform-info">
+                    <div class="platform-name">Все сразу</div>
+                    <div class="platform-desc">Ссылки на все платформы сразу</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="quick-actions">
+            <div class="quick-title">🔥 Популярные запросы</div>
+            <div class="quick-buttons">
+                <div class="quick-btn" data-query="технологии">💻 Технологии</div>
+                <div class="quick-btn" data-query="спорт">⚽ Спорт</div>
+                <div class="quick-btn" data-query="кино">🎬 Кино</div>
+                <div class="quick-btn" data-query="музыка">🎵 Музыка</div>
+                <div class="quick-btn" data-query="наука">🔬 Наука</div>
+                <div class="quick-btn" data-query="игры">🎮 Игры</div>
+            </div>
         </div>
     </div>
 
     <script>
+        // Инициализация Telegram Web App
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.MainButton.hide();
         
-        let currentCategory = 'general';
+        // Элементы DOM
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
         
-        // Обработка кликов по фильтрам
-        document.querySelectorAll('.filter-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-                currentCategory = chip.dataset.category;
-                document.getElementById('searchInput').value = '';
-                loadTopNews();
-            });
-        });
-        
-        // Поиск по Enter
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchNews();
-        });
-        
-        function searchNews() {
-            const query = document.getElementById('searchInput').value.trim();
-            
-            if (!query) {
+        // Функция отправки запроса боту
+        function sendSearch(query, platform) {
+            if (!query || query.trim() === '') {
                 tg.showPopup({
                     title: "❓ Пустой запрос",
-                    message: "Введи поисковое слово или фразу",
+                    message: "Введи что-нибудь для поиска",
                     buttons: [{type: "ok"}]
                 });
                 return;
             }
             
-            showSuccess(`🔍 Ищу "${query}"... Новости придут в чат`);
+            // Показываем уведомление
+            tg.showPopup({
+                title: "🔍 Поиск начат",
+                message: `Ищу "${query}" на ${getPlatformName(platform)}. Результат придёт в чат!`,
+                buttons: [{type: "ok"}]
+            });
             
             // Отправляем данные боту
             tg.sendData(JSON.stringify({
                 query: query,
-                category: currentCategory
+                platform: platform
             }));
         }
         
-        function loadTopNews() {
-            const categoryNames = {
-                general: "все новости",
-                technology: "технологии",
-                sports: "спорт",
-                science: "науку",
-                health: "здоровье",
-                entertainment: "развлечения",
-                business: "бизнес"
+        function getPlatformName(platform) {
+            const names = {
+                news: "Новостях",
+                youtube: "YouTube",
+                wildberries: "Wildberries",
+                kinopoisk: "Кинопоиске",
+                google: "Google",
+                all: "всех платформах"
             };
-            
-            showSuccess(`📰 Загружаю ${categoryNames[currentCategory]}... Новости придут в чат`);
-            
-            tg.sendData(JSON.stringify({
-                query: "",
-                category: currentCategory
-            }));
+            return names[platform] || platform;
         }
         
-        function showLoading() {
-            document.getElementById('resultsContainer').innerHTML = `
-                <div class="loading">
-                    ⏳ Отправляю запрос...<br>
-                    <small>Новости скоро появятся в чате</small>
-                </div>
-            `;
-        }
+        // Обработка клика по платформе
+        document.querySelectorAll('.platform-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const platform = card.dataset.platform;
+                const query = searchInput.value.trim();
+                
+                if (!query) {
+                    tg.showPopup({
+                        title: "❓ Введи запрос",
+                        message: "Сначала напиши, что искать",
+                        buttons: [{type: "ok"}]
+                    });
+                    searchInput.focus();
+                    return;
+                }
+                
+                sendSearch(query, platform);
+            });
+        });
         
-        function showSuccess(message) {
-            document.getElementById('resultsContainer').innerHTML = `
-                <div class="success-banner">
-                    ✅ ${message}
-                </div>
-                <div class="empty-state">
-                    💡 Можешь продолжить поиск<br>
-                    <small>Новости придут в этот чат</small>
-                </div>
-            `;
-        }
+        // Поиск по кнопке
+        searchBtn.addEventListener('click', () => {
+            const query = searchInput.value.trim();
+            if (query) {
+                // Если есть запрос, показываем платформы для выбора
+                tg.showPopup({
+                    title: "🔍 Выбери платформу",
+                    message: `Что ищем по запросу «${query}»?`,
+                    buttons: [
+                        {id: "news", type: "default", text: "📰 Новости"},
+                        {id: "youtube", type: "default", text: "📺 YouTube"},
+                        {id: "wb", type: "default", text: "🛒 Wildberries"},
+                        {id: "kp", type: "default", text: "🎬 Кинопоиск"},
+                        {id: "all", type: "default", text: "⚡ Все сразу"},
+                        {type: "cancel"}
+                    ]
+                }, (buttonId) => {
+                    if (buttonId && buttonId !== "cancel") {
+                        let platform = buttonId;
+                        if (buttonId === "wb") platform = "wildberries";
+                        if (buttonId === "kp") platform = "kinopoisk";
+                        sendSearch(query, platform);
+                    }
+                });
+            } else {
+                tg.showPopup({
+                    title: "❓ Пустой запрос",
+                    message: "Введи, что хочешь найти",
+                    buttons: [{type: "ok"}]
+                });
+                searchInput.focus();
+            }
+        });
+        
+        // Поиск по Enter
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchBtn.click();
+            }
+        });
+        
+        // Быстрые запросы
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.dataset.query;
+                searchInput.value = query;
+                searchBtn.click();
+            });
+        });
         
         // Сообщаем Telegram, что приложение готово
         tg.ready();
+        
+        // Автофокус на поле ввода
+        searchInput.focus();
     </script>
 </body>
 </html>
