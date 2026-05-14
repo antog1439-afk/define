@@ -165,13 +165,15 @@
                 return;
             }
             
+            // Отправляем данные боту
+            tg.sendData(JSON.stringify({ query: query }));
+            
+            // Показываем сообщение, что запрос отправлен
             tg.showPopup({
-                title: "🔍 Отправляю",
-                message: `Запрос: "${query}"\nРезультат придёт в чат!`,
+                title: "🔍 Запрос отправлен",
+                message: `"${query}"\nРезультат придёт в этот чат!`,
                 buttons: [{type: "ok"}]
             });
-            
-            tg.sendData(JSON.stringify({ query: query }));
         }
         
         searchBtn.addEventListener('click', () => {
@@ -184,6 +186,7 @@
             }
         });
         
+        // Быстрые запросы
         document.querySelectorAll('.example-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const query = btn.dataset.query;
