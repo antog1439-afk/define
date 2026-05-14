@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Поисковик</title>
+    <title>Универсальный помощник</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -11,170 +11,189 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
             padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        
+
         .container {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-        
-        .search-box {
-            margin-bottom: 20px;
-        }
-        
-        input {
+            max-width: 400px;
             width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #666666);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
             padding: 14px 16px;
-            border: 1px solid var(--tg-theme-hint-color, #ccc);
+            border: 1px solid var(--tg-theme-hint-color, #cccccc);
             border-radius: 24px;
             font-size: 16px;
             background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-            color: var(--tg-theme-text-color, #000);
+            color: var(--tg-theme-text-color, #000000);
             outline: none;
         }
-        
-        input:focus {
+
+        .search-input:focus {
             border-color: var(--tg-theme-button-color, #3390ec);
         }
-        
-        .platform {
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            text-align: center;
-            transition: transform 0.1s;
-        }
-        
-        .platform:active {
-            transform: scale(0.98);
-        }
-        
-        .emoji {
-            font-size: 28px;
-            display: block;
-            margin-bottom: 8px;
-        }
-        
-        .name {
-            font-weight: 600;
+
+        .search-btn {
+            padding: 14px 24px;
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 24px;
             font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
         }
-        
-        .info {
+
+        .examples {
+            margin-top: 30px;
+            text-align: left;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            padding: 15px;
+            border-radius: 16px;
+        }
+
+        .examples-title {
+            font-size: 13px;
+            color: var(--tg-theme-hint-color, #888888);
+            margin-bottom: 10px;
+        }
+
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .example-btn {
+            padding: 6px 12px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            border-radius: 16px;
             font-size: 12px;
-            color: var(--tg-theme-hint-color, #888);
-            margin-top: 4px;
+            cursor: pointer;
+            border: 1px solid var(--tg-theme-hint-color, #dddddd);
+        }
+
+        .info {
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #888888);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔍 Поисковик</h1>
-        
+        <div class="logo">🌐</div>
+        <h1>Универсальный помощник</h1>
+        <div class="subtitle">Введи название платформы или любой запрос</div>
+
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Введи запрос... Например: аватар 2" autocomplete="off">
+            <input type="text" class="search-input" id="searchInput" placeholder="YouTube, Кинопоиск, новости..." autocomplete="off">
+            <button class="search-btn" id="searchBtn">🔍</button>
         </div>
-        
-        <div class="platform" data-platform="youtube">
-            <div class="emoji">📺</div>
-            <div class="name">YouTube</div>
-            <div class="info">Видео по запросу</div>
+
+        <div class="examples">
+            <div class="examples-title">🔥 Примеры запросов:</div>
+            <div class="example-buttons">
+                <div class="example-btn" data-query="youtube">YouTube</div>
+                <div class="example-btn" data-query="кинопоиск">Кинопоиск</div>
+                <div class="example-btn" data-query="wildberries">Wildberries</div>
+                <div class="example-btn" data-query="ozon">Ozon</div>
+                <div class="example-btn" data-query="яндекс новости">Новости Яндекса</div>
+                <div class="example-btn" data-query="google">Google</div>
+                <div class="example-btn" data-query="rutube">Rutube</div>
+                <div class="example-btn" data-query="telegram">Telegram</div>
+                <div class="example-btn" data-query="vk">VK</div>
+                <div class="example-btn" data-query="chatgpt">ChatGPT</div>
+            </div>
         </div>
-        
-        <div class="platform" data-platform="google">
-            <div class="emoji">🌍</div>
-            <div class="name">Google</div>
-            <div class="info">Поиск в интернете</div>
-        </div>
-        
-        <div class="platform" data-platform="news">
-            <div class="emoji">📰</div>
-            <div class="name">Новости</div>
-            <div class="info">Свежие новости</div>
-        </div>
-        
-        <div class="platform" data-platform="wildberries">
-            <div class="emoji">🛒</div>
-            <div class="name">Wildberries</div>
-            <div class="info">Товары</div>
-        </div>
-        
-        <div class="platform" data-platform="kinopoisk">
-            <div class="emoji">🎬</div>
-            <div class="name">Кинопоиск</div>
-            <div class="info">Фильмы и сериалы</div>
+
+        <div class="info">
+            💡 Напиши название платформы — получу ссылку<br>
+            🔍 Напиши любой другой запрос — поищу в Google
         </div>
     </div>
 
     <script>
-        // Инициализация
         let tg = window.Telegram.WebApp;
         tg.expand();
+        tg.MainButton.hide();
         
-        let searchInput = document.getElementById('searchInput');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
         
-        // Отправка запроса боту
-        function sendToBot(platform) {
-            let query = searchInput.value.trim();
-            
-            if (query === "") {
+        function sendQuery(query) {
+            if (!query || query.trim() === '') {
                 tg.showPopup({
-                    title: "❌ Ошибка",
-                    message: "Введи поисковый запрос!",
+                    title: "❓ Пустой запрос",
+                    message: "Введи название платформы или что найти",
                     buttons: [{type: "ok"}]
                 });
                 return;
             }
             
-            // Отправляем данные
-            let data = JSON.stringify({
-                query: query,
-                platform: platform
-            });
-            
-            console.log("Отправка:", data);
-            tg.sendData(data);
-            
             tg.showPopup({
-                title: "🔍 Поиск начат",
-                message: `Ищу "${query}"`,
+                title: "🔍 Отправляю",
+                message: `Запрос: "${query}"\nРезультат придёт в чат!`,
                 buttons: [{type: "ok"}]
             });
+            
+            tg.sendData(JSON.stringify({ query: query }));
         }
         
-        // Назначаем обработчики на платформы
-        let platforms = document.querySelectorAll('.platform');
-        for (let i = 0; i < platforms.length; i++) {
-            platforms[i].onclick = function() {
-                let platform = this.getAttribute('data-platform');
-                sendToBot(platform);
-            };
-        }
+        searchBtn.addEventListener('click', () => {
+            sendQuery(searchInput.value.trim());
+        });
         
-        // Поиск по Enter
-        searchInput.onkeypress = function(e) {
+        searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                sendToBot('google');
+                sendQuery(searchInput.value.trim());
             }
-        };
+        });
         
-        // Сообщаем Telegram, что приложение готово
+        document.querySelectorAll('.example-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.dataset.query;
+                searchInput.value = query;
+                sendQuery(query);
+            });
+        });
+        
         tg.ready();
-        console.log("✅ Mini App загружен");
+        searchInput.focus();
     </script>
 </body>
 </html>
